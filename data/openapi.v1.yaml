@@ -13,13 +13,13 @@ info:
     # url: ''
     altText: "@Maven"
 servers:
-  - url: http://localhost/
+  - url: http://localhost/v1
 tags:
   - name: Maven
     description: |
       Maven 저장소
 paths:
-  /maven/{repo}:
+  /{access_key}/maven/{group_id}/{artifact_id}/maven-metadata.xml:
     get:
       tags:
         - Maven
@@ -32,4 +32,12 @@ paths:
           in: path
           schema:
             type: string
+  /{access_key}/maven/{group_id}/{artifact_id}/{version}/{artifact_id}.pom:
+    get:
+      tags:
+        - Maven
+  /{access_key}/maven/{group_id}/{artifact_id}/{version}/{artifact_id}.jar:
+    get:
+      tags:
+        - Maven
       

@@ -12,6 +12,7 @@ export class DocController {
 
     @Get('document')
     document(): StreamableFile {
+        console.log(`path:${join(process.cwd(), 'data', 'openapi.v1.yaml')}`);
         return new StreamableFile(createReadStream(join(process.cwd(), 'data', 'openapi.v1.yaml')));
     }
 }

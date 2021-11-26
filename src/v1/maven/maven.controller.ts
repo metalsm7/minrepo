@@ -83,8 +83,8 @@ export class MavenController {
             res.status(HttpStatus.NOT_FOUND).send();
             return;
         }
-        console.log(`repo_detail`);
-        console.log(repo_detail);
+        // console.log(`repo_detail`);
+        // console.log(repo_detail);
         //
         maven_info.release = repo_detail.release_version as string;
         return res.render(
@@ -112,8 +112,8 @@ export class MavenController {
             res.status(HttpStatus.NOT_FOUND).send();
             return;
         }
-        console.log(`repo_detail`);
-        console.log(repo_detail);
+        // console.log(`repo_detail`);
+        // console.log(repo_detail);
         if (typeof repo_detail.file_path === 'undefined' || (repo_detail.file_path as string).length < 1) {
             res.status(HttpStatus.NOT_FOUND).send();
             return;
@@ -150,17 +150,17 @@ export class MavenController {
             maven_repo.version = version;
         }
         const repo: any = await this.mavenService.getRepo(maven_repo.group_id, maven_repo.artifact_id);
-        console.log(`-`.repeat(30));
-        console.log(`format:${format}`);
-        console.log(`version:${version}`);
-        console.log(`maven_repo:${JSON.stringify(maven_repo)}`);
-        console.log(`repo:${JSON.stringify(repo)}`);
+        // console.log(`-`.repeat(30));
+        // console.log(`format:${format}`);
+        // console.log(`version:${version}`);
+        // console.log(`maven_repo:${JSON.stringify(maven_repo)}`);
+        // console.log(`repo:${JSON.stringify(repo)}`);
         // console.log(`headers`);
         // console.log(req.headers);
         // console.log(`params`);
         // console.log(req.params);
-        typeof req['checksum'] !== 'undefined' && console.log(`checksum:${JSON.stringify(req['checksum'])}`);
-        typeof req['jar_path'] !== 'undefined' && console.log(`jar_path:${req['jar_path']}`);
+        // typeof req['checksum'] !== 'undefined' && console.log(`checksum:${JSON.stringify(req['checksum'])}`);
+        // typeof req['jar_path'] !== 'undefined' && console.log(`jar_path:${req['jar_path']}`);
         // console.log(`body`);
         // console.log(req.body);
 
