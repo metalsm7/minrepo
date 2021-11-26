@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+    {{#with maven_info}}
+    <groupId>{{group_id}}</groupId>
+    <artifactId>{{artifact_id}}</artifactId>
+    <versioning>
+        <latest>{{release}}</latest>
+        <release>{{release}}</release>
+        <versions>
+            {{#each versions}}
+            <version>{{this}}</version>
+            {{/each}}
+        </versions>
+        <lastUpdated>{{last_updated}}</lastUpdated>
+    </versioning>
+    {{/with}}
+</metadata>

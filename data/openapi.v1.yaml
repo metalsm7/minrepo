@@ -1,0 +1,35 @@
+openapi: 3.0.0
+info:
+  version: 0.0.1
+  title: "@Maven RESTfulAPI"
+  description: |
+    Tiny maven repository server
+  termsOfService: empty
+  contact:
+    name: yh.lee
+    email: metalsm7@gmail.com
+    url: https://mparang.com
+  x-logo:
+    # url: ''
+    altText: "@Maven"
+servers:
+  - url: http://localhost/
+tags:
+  - name: Maven
+    description: |
+      Maven 저장소
+paths:
+  /maven/{repo}:
+    get:
+      tags:
+        - Maven
+      operationId: GetMavenRepo
+      summary: Request Repo
+      description: |
+        maven repo 를 요청합니다.
+      parameters:
+        - name: repo
+          in: path
+          schema:
+            type: string
+      
