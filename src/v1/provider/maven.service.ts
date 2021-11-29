@@ -43,8 +43,6 @@ export class MavenService {
             .set('latest_version', maven_repo.version as string)
             .set('created_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY)
             .doInsertAsync(true);
-        console.log(`res ${'-'.repeat(30)}`);
-        console.log(res);
         if (typeof res.err === 'undefined' && typeof res.identity !== 'undefined' && (res.identity as number) > 0) {
             const repo_id: number = res.identity as number;
 
@@ -55,8 +53,6 @@ export class MavenService {
                 .set('is_release', 0)
                 .where('repo_id', repo_id as number)
                 .doUpdateAsync();
-            console.log(`res ${'-'.repeat(30)}`);
-            console.log(res);
 
             res = await bql
                 .setIsPrepared(true)
@@ -66,8 +62,6 @@ export class MavenService {
                 .set('is_release', 1)
                 .set('created_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY)
                 .doInsertAsync(true);
-            console.log(`res ${'-'.repeat(30)}`);
-            console.log(res);
 
             rtn_val = true;
         }
@@ -83,8 +77,6 @@ export class MavenService {
             .set('updated_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY)
             .where('repo_id', maven_repo.repo_id as number)
             .doUpdateAsync();
-        console.log(`res ${'-'.repeat(30)}`);
-        console.log(res);
         if (typeof res.err === 'undefined' && typeof res.affected !== 'undefined' && (res.affected as number) > 0) {
 
             const bql: AZSql.Basic = new AZSql.Basic('maven_repo_detail', new AZSql(Database.getInstance().connection));
@@ -94,8 +86,6 @@ export class MavenService {
                 .set('is_release', 0)
                 .where('repo_id', maven_repo.repo_id as number)
                 .doUpdateAsync();
-            console.log(`res ${'-'.repeat(30)}`);
-            console.log(res);
 
             res = await bql
                 .setIsPrepared(true)
@@ -105,8 +95,6 @@ export class MavenService {
                 .set('is_release', 1)
                 .set('created_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY)
                 .doInsertAsync(true);
-            console.log(`res ${'-'.repeat(30)}`);
-            console.log(res);
 
             rtn_val = true;
         }
