@@ -47,7 +47,7 @@ create table maven_repo_detail (
 
 drop table maven_repo_access_history;
 create table maven_repo_access_history (
-    repo_id         integer not null,
+    repo_id         integer not null primary key ,
     access_count    integer not null default 0,
     updated_at      numeric null
 );
@@ -56,7 +56,7 @@ drop table maven_repo_access_history_log;
 create table maven_repo_access_history_log (
     repo_id         integer not null,
     repo_detail_id  integer not null,
-    access_key
+    access_key      text null,
     remote_addr     text null,
     created         numeric null
 );

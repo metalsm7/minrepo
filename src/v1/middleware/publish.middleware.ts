@@ -16,7 +16,7 @@ import { join } from 'path';
 // };
 @Injectable()
 export class PublishMiddleware implements NestMiddleware {
-  use(req: Request, res: Response, next: NextFunction) {
+  async use(req: Request, res: Response, next: NextFunction) {
     // const path_regex: RegExp = new RegExp(/^\/v\d+\/[a-zA-Z0-9]+\/maven\/.+\.(jar|pom|xml)(\.sha1|\.md5|\.sha256|\.sha512)?$/);
     const path_regex: RegExp = new RegExp(/^\/v\d+\/[a-zA-Z0-9]+\/maven\/.+\.(jar)(\.sha1|\.md5|\.sha256|\.sha512)?$/);
     // const content_type: string = req.headers['content-type'];
@@ -35,6 +35,21 @@ export class PublishMiddleware implements NestMiddleware {
     // console.log(`  >> PublishMiddleware - file_name:${file_name}`);
     // console.log(`  >> PublishMiddleware - save_path:${save_path}`);
     // console.log(`  >> PublishMiddleware - pass_as_param:${pass_as_param}`);
+    
+    if (existsSync(save_path)) {
+      // console.log(`  >> PublishMiddleware - unlink - begin`);
+      await new Promise((resolve: any, _reject: any) => {
+        // console.log(`  >> PublishMiddleware - unlink - save_path:${save_path}`);
+        unlink(save_path, () => {
+          // console.log(`  >> PublishMiddleware - unlink - resolve`);
+          resolve();
+        })
+      });
+      // console.log(`  >> PublishMiddleware - unlink - end`);
+    }
+    // console.log(`  >> PublishMiddleware - appendFile - begin`);
+    
+    (req as any).tmp_path = save_path;
 
     const checksum: any = {
       method: pass_as_param ? file_name.replace(file_regex, '$1') : null,
@@ -42,31 +57,26 @@ export class PublishMiddleware implements NestMiddleware {
     };
 
     req.on('data', async (chunk: any) => {
-      // console.log(`chunk`);
-      // console.log(chunk);
+      console.log(`chunk`);
+      console.log(chunk);
       if (pass_as_param) {
         checksum.value = (chunk as Buffer).toString();
         req['checksum'] = checksum;
         // console.log(`  >> PublishMiddleware - checksum:${JSON.stringify(checksum)}`);
       }
       else {
-        if (existsSync(save_path)) {
-          await new Promise((resolve: any, _reject: any) => {
-            unlink(save_path, () => {
-              resolve();
-            })
-          });
-        }
         await new Promise((resolve: any, _reject: any) => {
+          // console.log(`  >> PublishMiddleware - appendFile - save_path:${save_path}`);
           appendFile(save_path, chunk, () => {
-            req['tmp_path'] = save_path;
+            // console.log(`  >> PublishMiddleware - appendFile - resolve - (req as any).tmp_path:${(req as any).tmp_path}`);
             resolve();
           });
         });
+        // console.log(`  >> PublishMiddleware - appendFile - end`);
       }
     });
     req.on('end', () => {
-      // console.log(`on end`);
+      console.log(`on end`);
       next();
     });
   }

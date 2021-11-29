@@ -4,6 +4,7 @@ import { Request, Response } from 'express';
 import { MavenService, MavenRepo } from '../provider/maven.service';
 import { existsSync, renameSync, mkdirSync, unlinkSync, createReadStream, ReadStream } from 'fs';
 import { join } from 'path';
+import { RequestExtend } from '../middleware/request-extend.middleware';
 
 interface MavenInfo {
     group_id: string;
@@ -118,6 +119,9 @@ export class MavenController {
             res.status(HttpStatus.NOT_FOUND).send();
             return;
         }
+        // 다운로드 기록 추가
+        await this.mavenService.addAccessHistory(repo_detail.repo_id, repo_detail.repo_detail_id, req.params.access_key, ((req as any).ext as RequestExtend).remote_addr);
+        //
         const file: ReadStream = createReadStream(join(process.cwd(), repo_detail.file_path as string));
         res.set({
             'Content-Type': 'application/octet-stream',
@@ -166,8 +170,13 @@ export class MavenController {
 
         const now: Date = new Date();
         const save_path: string = join(process.cwd(), 'repo', String(now.getUTCFullYear()), String(now.getUTCMonth()), String(now.getUTCDate()));
-        const temp_path: string = req['tmp_path'];
+        const temp_path: string = (req as any).tmp_path;
         const save_name: string = (Math.random().toString(36)+'00000000000000000').slice(2, 10+2);
+        // console.log(`req`);
+        // console.log(req);
+        // console.log(`save_path:${save_path}`);
+        // console.log(`temp_path:${temp_path}`);
+        // console.log(`save_name:${save_name}`);
 
         maven_repo.file_path = join(save_path, save_name).replace(process.cwd(), '');
 
@@ -184,6 +193,8 @@ export class MavenController {
             }
             rtn_val = await this.mavenService.updateRepo(maven_repo);
         }
+        // console.log(`rtn_val`);
+        // console.log(rtn_val);
 
         if (rtn_val) {
             if (typeof temp_path !== 'undefined' && temp_path.length > 0 && existsSync(temp_path)) {
