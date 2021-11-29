@@ -12,6 +12,7 @@ drop table auth_remote_expires;
 create table auth_remote_expires (
     auth_idx    integer not null,
     remote_addr text not null,
+    is_regexp   integer not null default 0,
     enable_at   numeric null,
     expire_at   numeric null
 );
