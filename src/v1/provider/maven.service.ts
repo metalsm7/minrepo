@@ -200,8 +200,10 @@ WHERE
 VALUES (
  @repo_id, 1, strftime('%s','now')
 )
-ON CONFLICT (repo_id)
-DO UPDATE SET access_count=access_count+1, updated_at=strftime('%s','now')`,
+ON CONFLICT (repo_id) DO UPDATE
+SET
+ access_count=access_count+1,
+ updated_at=strftime('%s','now')`,
                     { '@repo_id': repo_id }
                 );
 
