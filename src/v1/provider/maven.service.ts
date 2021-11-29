@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import * as path from 'path';
-import * as sqlite3 from 'sqlite3';
 import { AZSql } from 'azlib';
-
-const db: sqlite3.Database = new sqlite3.Database(path.join(process.cwd(), 'data', 'db.sqlite'));
+import { Database } from '../../common/database';
 
 export interface MavenRepo {
     repo_id?: number;
@@ -19,9 +16,6 @@ export interface MavenRepo {
 
 @Injectable()
 export class MavenService {
-    // constructor() {
-    //     console.log(`MavenService inited`);
-    // }
 
     /**
      * 
@@ -31,13 +25,13 @@ export class MavenService {
      * @returns 
      */
     async exists(group_id: string, artifact_id: string, version?: string): Promise<boolean> {
-        const res: number = await new AZSql.Prepared(db).getAsync('SELECT EXISTS(SELECT * FROM maven_repo WHERE group_id=@group_id AND artifact_id=@artifact_id) as cnt', {'@group_id': group_id, '@artifact_id': artifact_id});
+        const res: number = await new AZSql.Prepared(Database.getInstance().connection).getAsync('SELECT EXISTS(SELECT * FROM maven_repo WHERE group_id=@group_id AND artifact_id=@artifact_id) as cnt', {'@group_id': group_id, '@artifact_id': artifact_id});
         return res > 0;
     }
 
     async addRepo(maven_repo: MavenRepo): Promise<boolean> {
         let rtn_val: boolean = false;
-        let res: AZSql.Result = await new AZSql.Basic('maven_repo', new AZSql(db))
+        let res: AZSql.Result = await new AZSql.Basic('maven_repo', new AZSql(Database.getInstance().connection))
             .setIsPrepared(true)
             .set('group_id', maven_repo.group_id as string)
             .set('artifact_id', maven_repo.artifact_id as string)
@@ -50,7 +44,7 @@ export class MavenService {
         if (typeof res.err === 'undefined' && typeof res.identity !== 'undefined' && (res.identity as number) > 0) {
             const repo_id: number = res.identity as number;
 
-            const bql: AZSql.Basic = new AZSql.Basic('maven_repo_detail', new AZSql(db));
+            const bql: AZSql.Basic = new AZSql.Basic('maven_repo_detail', new AZSql(Database.getInstance().connection));
 
             await bql
                 .setIsPrepared(true)
@@ -78,7 +72,7 @@ export class MavenService {
 
     async updateRepo(maven_repo: MavenRepo): Promise<boolean> {
         let rtn_val: boolean = false;
-        let res: AZSql.Result = await new AZSql.Basic('maven_repo', new AZSql(db))
+        let res: AZSql.Result = await new AZSql.Basic('maven_repo', new AZSql(Database.getInstance().connection))
             .setIsPrepared(true)
             .set('release_version', maven_repo.version as string)
             .set('latest_version', maven_repo.version as string)
@@ -89,7 +83,7 @@ export class MavenService {
         console.log(res);
         if (typeof res.err === 'undefined' && typeof res.affected !== 'undefined' && (res.affected as number) > 0) {
 
-            const bql: AZSql.Basic = new AZSql.Basic('maven_repo_detail', new AZSql(db));
+            const bql: AZSql.Basic = new AZSql.Basic('maven_repo_detail', new AZSql(Database.getInstance().connection));
 
             await bql
                 .setIsPrepared(true)
@@ -116,7 +110,7 @@ export class MavenService {
     }
 
     async getRepo(group_id_or_repo_id: string|number, artifact_id?: string): Promise<object|null> {
-        const bql: AZSql.Basic = new AZSql.Basic('maven_repo', new AZSql(db))
+        const bql: AZSql.Basic = new AZSql.Basic('maven_repo', new AZSql(Database.getInstance().connection))
             .setIsPrepared(true);
         if (typeof group_id_or_repo_id === 'string') {
             bql
@@ -133,7 +127,7 @@ export class MavenService {
     }
 
     async getRepoVersions(repo_id: number): Promise<Array<string>> {
-        const res: Array<any> = await new AZSql.Prepared(db)
+        const res: Array<any> = await new AZSql.Prepared(Database.getInstance().connection)
             .getListAsync(
                 // `SELECT version FROM maven_repo_detail WHERE repo_id=@repo_id ORDER BY repo_detail_id DESC`,
                 `SELECT version FROM maven_repo_detail WHERE repo_id=@repo_id`,
@@ -158,7 +152,7 @@ export class MavenService {
         }
         switch (typeof group_id_or_repo_id) {
             case 'string':
-                res = await new AZSql.Prepared(db)
+                res = await new AZSql.Prepared(Database.getInstance().connection)
                     .getDataAsync(
 `SELECT
  mr.repo_id, mr.group_id, mr.artifact_id, mr.release_version, mrd.version, mrd.repo_detail_id, mrd.file_path
@@ -179,7 +173,7 @@ LIMIT 1`,
                     );
                 break;
             case 'number':
-                res = await new AZSql.Prepared(db)
+                res = await new AZSql.Prepared(Database.getInstance().connection)
                     .getDataAsync(
 `SELECT
  mr.repo_id, mr.group_id, mr.artifact_id, mr.release_version, mrd.version

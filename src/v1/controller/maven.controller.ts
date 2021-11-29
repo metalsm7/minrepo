@@ -1,7 +1,7 @@
 import { Controller, Get, Put, Req, Param, Res, HttpStatus } from '@nestjs/common';
 // import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { Request, Response } from 'express';
-import { MavenService, MavenRepo } from './maven.service';
+import { MavenService, MavenRepo } from '../provider/maven.service';
 import { existsSync, renameSync, mkdirSync, unlinkSync, createReadStream, ReadStream } from 'fs';
 import { join } from 'path';
 
