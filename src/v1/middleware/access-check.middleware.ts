@@ -14,7 +14,6 @@ export class AccessCheckMiddleware implements NestMiddleware {
     const access_key: string = req.params.access_key;
 
     const has_auth: boolean = await AuthProvider.has(access_key, ((req as any).ext as RequestExtend).remote_addr);
-    // console.log(`AccessCheckMiddleware - has_auth:${has_auth}`);
 
     if (!has_auth) {
       ApiRes.send(res, 0xA00011);

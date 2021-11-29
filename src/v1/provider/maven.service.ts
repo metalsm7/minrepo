@@ -25,7 +25,11 @@ export class MavenService {
      * @returns 
      */
     async exists(group_id: string, artifact_id: string, version?: string): Promise<boolean> {
-        const res: number = await new AZSql.Prepared(Database.getInstance().connection).getAsync('SELECT EXISTS(SELECT * FROM maven_repo WHERE group_id=@group_id AND artifact_id=@artifact_id) as cnt', {'@group_id': group_id, '@artifact_id': artifact_id});
+        const res: number = await new AZSql.Prepared(Database.getInstance().connection)
+            .getAsync(
+                `SELECT EXISTS(SELECT * FROM maven_repo WHERE group_id=@group_id AND artifact_id=@artifact_id) as cnt`, 
+                { '@group_id': group_id, '@artifact_id': artifact_id }
+            );
         return res > 0;
     }
 
@@ -116,7 +120,6 @@ export class MavenService {
             bql
                 .where('group_id', group_id_or_repo_id as string)
                 .where('artifact_id', artifact_id as string);
-            // typeof version !== 'undefined' && bql.where('version', version as string);
         }
         else {
             bql.where('repo_id', group_id_or_repo_id as number);
@@ -129,7 +132,6 @@ export class MavenService {
     async getRepoVersions(repo_id: number): Promise<Array<string>> {
         const res: Array<any> = await new AZSql.Prepared(Database.getInstance().connection)
             .getListAsync(
-                // `SELECT version FROM maven_repo_detail WHERE repo_id=@repo_id ORDER BY repo_detail_id DESC`,
                 `SELECT version FROM maven_repo_detail WHERE repo_id=@repo_id`,
                 { '@repo_id': repo_id }
             );
@@ -201,8 +203,6 @@ WHERE
             .set('access_key', access_key)
             .set('remote_addr', remote_addr)
             .doInsertAsync(true);
-        // console.log(`res - doInsertAsync`);
-        // console.log(res);
         if (res && res.affected as number > 0) {
             res = await new AZSql.Prepared(Database.getInstance().connection)
                 .setIdentity(true)
@@ -216,8 +216,6 @@ ON CONFLICT (repo_id)
 DO UPDATE SET access_count=access_count+1, updated_at=strftime('%s','now')`,
                     { '@repo_id': repo_id }
                 );
-            console.log(`res - doUpdateAsync`);
-            console.log(res);
 
             rtn_val = res && res.affected as number > 0;
         }

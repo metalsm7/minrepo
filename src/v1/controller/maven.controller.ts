@@ -1,5 +1,4 @@
 import { Controller, Get, Put, Req, Param, Res, HttpStatus } from '@nestjs/common';
-// import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { Request, Response } from 'express';
 import { MavenService, MavenRepo } from '../provider/maven.service';
 import { existsSync, renameSync, mkdirSync, unlinkSync, createReadStream, ReadStream } from 'fs';
@@ -20,7 +19,6 @@ export class MavenController {
     constructor(private readonly mavenService: MavenService) {}
 
     @Get('*/maven-metadata.xml')
-    // @Render('maven/metadata')
     async getMetadata(@Req() req: Request, @Res() res: Response, @Param('access_key') access_key: string) {
         const req_repo: Array<string> = String(req.params[0]).split('/');
         const maven_info: MavenInfo = {
@@ -31,19 +29,6 @@ export class MavenController {
             maven_info.artifact_id = req_repo.splice(req_repo.length - 1)[0];
             maven_info.group_id = req_repo.join('.');
         }
-        // const exists: boolean = await this.mavenService.exists(maven_info.group_id, maven_info.artifact_id);
-        // if (exists) {
-        //     const repo: any = await this.mavenService.getRepo(maven_info.group_id, maven_info.artifact_id);
-        //     if (repo !== null) {
-        //         //
-        //         const repo_id: number = repo.repo_id as number;
-        //         const versions: Array<string> = await this.mavenService.getRepoVersions(repo_id);
-        //         //
-        //         maven_info.release = repo.release_version as string;
-        //         maven_info.last_updated = repo.created_at as string;
-        //         maven_info.versions = versions;
-        //     }
-        // }
         const repo: any = await this.mavenService.getRepo(maven_info.group_id, maven_info.artifact_id);
         if (repo === null) {
             res.status(HttpStatus.NOT_FOUND).send();
@@ -66,7 +51,6 @@ export class MavenController {
     }
 
     @Get('*/:version/*.pom') // {artifact_id}-{version}.pom
-    // @Render('maven/pom')
     async getPom(@Req() req: Request, @Res() res: Response, @Param('access_key') access_key: string, @Param('version') version: string) {
         const req_repo: Array<string> = String(req.params[0]).split('/');
         const req_poms: Array<string> = req.params[1].split('-');
@@ -84,8 +68,6 @@ export class MavenController {
             res.status(HttpStatus.NOT_FOUND).send();
             return;
         }
-        // console.log(`repo_detail`);
-        // console.log(repo_detail);
         //
         maven_info.release = repo_detail.release_version as string;
         return res.render(
@@ -95,7 +77,6 @@ export class MavenController {
     }
 
     @Get('*/:version/*.jar')
-    // @Render('maven/pom')
     async getJar(@Req() req: Request, @Res() res: Response, @Param('access_key') access_key: string, @Param('version') version: string) {
         const req_repo: Array<string> = String(req.params[0]).split('/');
         const req_poms: Array<string> = req.params[1].split('-');
@@ -113,8 +94,6 @@ export class MavenController {
             res.status(HttpStatus.NOT_FOUND).send();
             return;
         }
-        // console.log(`repo_detail`);
-        // console.log(repo_detail);
         if (typeof repo_detail.file_path === 'undefined' || (repo_detail.file_path as string).length < 1) {
             res.status(HttpStatus.NOT_FOUND).send();
             return;
@@ -127,7 +106,6 @@ export class MavenController {
             'Content-Type': 'application/octet-stream',
             'Content-Disposition': `attachment; filename="${repo_detail.artifact_id as string}-${repo_detail.version as string}.jar"`,
         });
-        // return new StreamableFile(file);
         file.pipe(res);
     }
 
@@ -154,29 +132,11 @@ export class MavenController {
             maven_repo.version = version;
         }
         const repo: any = await this.mavenService.getRepo(maven_repo.group_id, maven_repo.artifact_id);
-        // console.log(`-`.repeat(30));
-        // console.log(`format:${format}`);
-        // console.log(`version:${version}`);
-        // console.log(`maven_repo:${JSON.stringify(maven_repo)}`);
-        // console.log(`repo:${JSON.stringify(repo)}`);
-        // console.log(`headers`);
-        // console.log(req.headers);
-        // console.log(`params`);
-        // console.log(req.params);
-        // typeof req['checksum'] !== 'undefined' && console.log(`checksum:${JSON.stringify(req['checksum'])}`);
-        // typeof req['jar_path'] !== 'undefined' && console.log(`jar_path:${req['jar_path']}`);
-        // console.log(`body`);
-        // console.log(req.body);
 
         const now: Date = new Date();
         const save_path: string = join(process.cwd(), 'repo', String(now.getUTCFullYear()), String(now.getUTCMonth()), String(now.getUTCDate()));
         const temp_path: string = (req as any).tmp_path;
         const save_name: string = (Math.random().toString(36)+'00000000000000000').slice(2, 10+2);
-        // console.log(`req`);
-        // console.log(req);
-        // console.log(`save_path:${save_path}`);
-        // console.log(`temp_path:${temp_path}`);
-        // console.log(`save_name:${save_name}`);
 
         maven_repo.file_path = join(save_path, save_name).replace(process.cwd(), '');
 
@@ -193,8 +153,6 @@ export class MavenController {
             }
             rtn_val = await this.mavenService.updateRepo(maven_repo);
         }
-        // console.log(`rtn_val`);
-        // console.log(rtn_val);
 
         if (rtn_val) {
             if (typeof temp_path !== 'undefined' && temp_path.length > 0 && existsSync(temp_path)) {
