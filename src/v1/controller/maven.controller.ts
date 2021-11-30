@@ -4,6 +4,7 @@ import { MavenService, MavenRepo } from '../provider/maven.service';
 import { existsSync, copyFileSync, mkdirSync, unlinkSync, createReadStream, ReadStream } from 'fs';
 import { join } from 'path';
 import { RequestExtend } from '../middleware/request-extend.middleware';
+import { ApiRes } from '../../common/apires';
 
 interface MavenInfo {
     group_id: string;
@@ -31,7 +32,7 @@ export class MavenController {
         }
         const repo: any = await this.mavenService.getRepo(maven_info.group_id, maven_info.artifact_id);
         if (repo === null) {
-            res.status(HttpStatus.NOT_FOUND).send();
+            ApiRes.send(res, 0x100001);
             return;
         }
         //
@@ -65,7 +66,7 @@ export class MavenController {
         }
         const repo_detail: any = await this.mavenService.getRepoDetail(maven_info.group_id, maven_info.artifact_id, maven_info.version);
         if (repo_detail === null) {
-            res.status(HttpStatus.NOT_FOUND).send();
+            ApiRes.send(res, 0x100001);
             return;
         }
         //
@@ -91,11 +92,11 @@ export class MavenController {
         }
         const repo_detail: any = await this.mavenService.getRepoDetail(maven_info.group_id, maven_info.artifact_id, maven_info.version);
         if (repo_detail === null) {
-            res.status(HttpStatus.NOT_FOUND).send();
+            ApiRes.send(res, 0x100001);
             return;
         }
         if (typeof repo_detail.file_path === 'undefined' || (repo_detail.file_path as string).length < 1) {
-            res.status(HttpStatus.NOT_FOUND).send();
+            ApiRes.send(res, 0x100002);
             return;
         }
         // 다운로드 기록 추가
@@ -113,12 +114,12 @@ export class MavenController {
     async publish(@Req() req: Request, @Res() res: Response, @Param('version') version: string, @Param('format') format: string): Promise<string> {
         const req_regex: RegExp = new RegExp(/.+\.(pom|xml).*/);
         if (req_regex.test(format)) {
-            res.status(HttpStatus.OK).send();
+            ApiRes.send(res, 0x000000);
             return;
         }
         const proc_regex: RegExp = new RegExp(/.+\.jar$/);
         if (!proc_regex.test(format)) {
-            res.status(HttpStatus.OK).send();
+            ApiRes.send(res, 0x000000);
             return;
         }
         const req_repo: Array<string> = String(req.params[0]).split('/');
@@ -130,6 +131,11 @@ export class MavenController {
             maven_repo.artifact_id = req_repo.splice(req_repo.length - 1)[0];
             maven_repo.group_id = req_repo.join('.');
             maven_repo.version = version;
+        }
+        const is_exists: boolean = await this.mavenService.exists(maven_repo.group_id, maven_repo.artifact_id, maven_repo.version);
+        if (is_exists) {
+            ApiRes.send(res, 0x100011);
+            return;
         }
         const repo: any = await this.mavenService.getRepo(maven_repo.group_id, maven_repo.artifact_id);
 
@@ -147,11 +153,15 @@ export class MavenController {
         }
         else {
             // 있으면 & 버전이 올라가면 업데이트
-            if ((repo['latest_version'] as string) > (maven_repo.version as string)) {
-                res.status(HttpStatus.BAD_REQUEST).send();
-                return;
-            }
-            rtn_val = await this.mavenService.updateRepo(maven_repo);
+            // if ((repo['latest_version'] as string) > (maven_repo.version as string)) {
+            //     res.status(HttpStatus.BAD_REQUEST).send();
+            //     return;
+            // }
+            maven_repo.repo_id = repo.repo_id;
+            rtn_val = await this.mavenService.updateRepo(
+                maven_repo,
+                (repo['latest_version'] as string) < (maven_repo.version as string)
+            );
         }
 
         if (rtn_val) {
@@ -168,7 +178,7 @@ export class MavenController {
             res.status(HttpStatus.BAD_REQUEST).send();
         }
         else {
-            res.status(HttpStatus.OK).send();
+            ApiRes.send(res, 0x000000);
         }
     }
 }

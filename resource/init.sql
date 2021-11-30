@@ -10,6 +10,7 @@ create unique index auth_access_key_unique on auth (access_key);
 
 drop table auth_remote_expires;
 create table auth_remote_expires (
+    expire_idx  integer  not null constraint auth_remote_expires_pk primary key autoincrement,
     auth_idx    integer not null,
     remote_addr text not null,
     is_regexp   integer not null default 0,

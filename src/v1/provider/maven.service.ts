@@ -25,11 +25,37 @@ export class MavenService {
      * @returns 
      */
     async exists(group_id: string, artifact_id: string, version?: string): Promise<boolean> {
-        const res: number = await new AZSql.Prepared(Database.getInstance().connection)
-            .getAsync(
-                `SELECT EXISTS(SELECT * FROM maven_repo WHERE group_id=@group_id AND artifact_id=@artifact_id) as cnt`, 
-                { '@group_id': group_id, '@artifact_id': artifact_id }
-            );
+        const sql: AZSql.Prepared = new AZSql.Prepared(Database.getInstance().connection);
+        let res: number = 0;
+        if (typeof version === 'undefined') {
+            res = await sql
+                .getAsync(
+                    `SELECT EXISTS(SELECT * FROM maven_repo WHERE group_id=@group_id AND artifact_id=@artifact_id) as cnt`, 
+                    { '@group_id': group_id, '@artifact_id': artifact_id }
+                );
+        }
+        else {
+            res = await sql
+                .getAsync(
+                    `SELECT EXISTS(
+ SELECT *
+ FROM
+  maven_repo as mr
+  LEFT JOIN maven_repo_detail as mrd
+   ON mr.repo_id=mrd.repo_id
+ WHERE
+  mr.group_id=@group_id
+  AND mr.artifact_id=@artifact_id
+  AND mrd.version=@version
+) as cnt`, 
+                    { '@group_id': group_id, '@artifact_id': artifact_id, '@version': version }
+                );
+        }
+        // const res: number = await new AZSql.Prepared(Database.getInstance().connection)
+        //     .getAsync(
+        //         `SELECT EXISTS(SELECT * FROM maven_repo WHERE group_id=@group_id AND artifact_id=@artifact_id) as cnt`, 
+        //         { '@group_id': group_id, '@artifact_id': artifact_id }
+        //     );
         return res > 0;
     }
 
@@ -68,33 +94,43 @@ export class MavenService {
         return rtn_val;
     }
 
-    async updateRepo(maven_repo: MavenRepo): Promise<boolean> {
+    async updateRepo(maven_repo: MavenRepo, is_latest: boolean): Promise<boolean> {
         let rtn_val: boolean = false;
-        let res: AZSql.Result = await new AZSql.Basic('maven_repo', new AZSql(Database.getInstance().connection))
-            .setIsPrepared(true)
+        let bql: AZSql.Basic = new AZSql.Basic('maven_repo', new AZSql(Database.getInstance().connection))
+            .setIsPrepared(true);
+        is_latest && bql
             .set('release_version', maven_repo.version as string)
-            .set('latest_version', maven_repo.version as string)
+            .set('latest_version', maven_repo.version as string);
+        // let res: AZSql.Result = await new AZSql.Basic('maven_repo', new AZSql(Database.getInstance().connection))
+        //     .setIsPrepared(true);
+        //     .set('release_version', maven_repo.version as string)
+        //     .set('latest_version', maven_repo.version as string)
+        let res: AZSql.Result = await bql
             .set('updated_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY)
             .where('repo_id', maven_repo.repo_id as number)
             .doUpdateAsync();
         if (typeof res.err === 'undefined' && typeof res.affected !== 'undefined' && (res.affected as number) > 0) {
 
-            const bql: AZSql.Basic = new AZSql.Basic('maven_repo_detail', new AZSql(Database.getInstance().connection));
+            bql = new AZSql.Basic('maven_repo_detail', new AZSql(Database.getInstance().connection));
 
-            await bql
+            is_latest && await bql
+                .clear()
                 .setIsPrepared(true)
                 .set('is_release', 0)
                 .where('repo_id', maven_repo.repo_id as number)
                 .doUpdateAsync();
 
-            res = await bql
+            // res = await bql
+            bql
+                .clear()
                 .setIsPrepared(true)
                 .set('repo_id', maven_repo.repo_id as number)
                 .set('version', maven_repo.version as string)
                 .set('file_path', maven_repo.file_path as string)
-                .set('is_release', 1)
-                .set('created_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY)
-                .doInsertAsync(true);
+                // .set('is_release', 1)
+                .set('created_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY);
+            is_latest && bql.set('is_release', 1);
+            res = await bql.doInsertAsync(true);
 
             rtn_val = true;
         }
