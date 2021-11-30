@@ -16,14 +16,16 @@ WORKDIR /usr/local/minrepo
 ENV NODE_ENV=production
 
 RUN mv src/dist/* . \
-    && mv src/data . \
+    # && mv src/data . \
     && mv src/views . \
-    && mv src/repo . \
-    && rm -rf repo/* \
+    && mv src/resource . \
+    # && rm -rf data/repo/* \
     && mv src/package.json . \
     && rm -rf src/ \
     && npm install --production \
-    && sqlite3 data/db.sqlite < data/init.sql
+    # && mkdir data/db \
+    # && mkdir data/repo \
+    # && sqlite3 data/db/db.sqlite < resource/init.sql
 
 EXPOSE 3000
 

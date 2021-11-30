@@ -5,7 +5,7 @@ export class Database {
     private static _database: Database|null = null;
     private _db: sqlite3.Database;
     constructor() {
-        this._db = new sqlite3.Database(path.join(process.cwd(), 'data', 'db.sqlite'));
+        this._db = new sqlite3.Database(path.join(process.cwd(), 'data', 'db', 'db.sqlite'));
     }
 
     static getInstance(): Database {

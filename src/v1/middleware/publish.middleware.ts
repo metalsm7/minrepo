@@ -38,8 +38,8 @@ export class PublishMiddleware implements NestMiddleware {
     };
 
     req.on('data', async (chunk: any) => {
-      console.log(`chunk`);
-      console.log(chunk);
+      // console.log(`chunk`);
+      // console.log(chunk);
       if (pass_as_param) {
         checksum.value = (chunk as Buffer).toString();
         req['checksum'] = checksum;

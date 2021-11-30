@@ -134,7 +134,7 @@ export class MavenController {
         const repo: any = await this.mavenService.getRepo(maven_repo.group_id, maven_repo.artifact_id);
 
         const now: Date = new Date();
-        const save_path: string = join(process.cwd(), 'repo', String(now.getUTCFullYear()), String(now.getUTCMonth()), String(now.getUTCDate()));
+        const save_path: string = join(process.cwd(), 'data', 'repo', String(now.getUTCFullYear()), String(now.getUTCMonth()), String(now.getUTCDate()));
         const temp_path: string = (req as any).tmp_path;
         const save_name: string = (Math.random().toString(36)+'00000000000000000').slice(2, 10+2);
 
