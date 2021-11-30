@@ -114,22 +114,19 @@ export class MavenService {
             bql = new AZSql.Basic('maven_repo_detail', new AZSql(Database.getInstance().connection));
 
             is_latest && await bql
-                .clear()
                 .setIsPrepared(true)
                 .set('is_release', 0)
                 .where('repo_id', maven_repo.repo_id as number)
                 .doUpdateAsync();
 
-            // res = await bql
-            bql
-                .clear()
+            res = await bql
                 .setIsPrepared(true)
                 .set('repo_id', maven_repo.repo_id as number)
                 .set('version', maven_repo.version as string)
                 .set('file_path', maven_repo.file_path as string)
                 .set('is_release', is_latest ? 1 : 0)
-                .set('created_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY);
-            res = await bql.doInsertAsync(true);
+                .set('created_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY)
+                .doInsertAsync(true);
 
             rtn_val = true;
         }
