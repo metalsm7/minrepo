@@ -1,7 +1,7 @@
 import { Controller, Get, Put, Req, Param, Res, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { MavenService, MavenRepo } from '../provider/maven.service';
-import { existsSync, renameSync, mkdirSync, unlinkSync, createReadStream, ReadStream } from 'fs';
+import { existsSync, copyFileSync, mkdirSync, unlinkSync, createReadStream, ReadStream } from 'fs';
 import { join } from 'path';
 import { RequestExtend } from '../middleware/request-extend.middleware';
 
@@ -157,7 +157,9 @@ export class MavenController {
         if (rtn_val) {
             if (typeof temp_path !== 'undefined' && temp_path.length > 0 && existsSync(temp_path)) {
                 !existsSync(save_path) && mkdirSync(save_path, { recursive: true });
-                renameSync(temp_path, join(save_path, save_name));
+                existsSync(temp_path) && copyFileSync(temp_path, join(save_path, save_name));
+                // existsSync(temp_path) && unlinkSync(temp_path);
+                // renameSync(temp_path, join(save_path, save_name));
             }
         }
         existsSync(temp_path) && unlinkSync(temp_path);

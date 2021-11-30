@@ -9,6 +9,7 @@ async function bootstrap() {
   app.setBaseViewsDir(path.join(process.cwd(), 'views'));
   app.setViewEngine('hbs');
   app.use(helmet());
+  app.enableCors();
   await app.listen(3000);
 }
 bootstrap();

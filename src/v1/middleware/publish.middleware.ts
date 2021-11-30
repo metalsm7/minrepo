@@ -1,7 +1,6 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
-import { Encoding } from 'crypto';
 import { Request, Response, NextFunction } from 'express';
-import { appendFile, unlink, existsSync } from 'fs';
+import { appendFile, unlink, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
 @Injectable()
@@ -20,6 +19,8 @@ export class PublishMiddleware implements NestMiddleware {
     const save_path: string = join(process.cwd(), 'tmp', file_name);
     const file_regex: RegExp = new RegExp(/.+\.(md5|sha1|sha256|sha512)?$/);
     const pass_as_param: boolean = file_regex.test(file_name);
+
+    !existsSync(join(process.cwd(), 'tmp')) && mkdirSync(join(process.cwd(), 'tmp'), { recursive: true });
     
     if (existsSync(save_path)) {
       await new Promise((resolve: any, _reject: any) => {
