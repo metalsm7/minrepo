@@ -127,9 +127,8 @@ export class MavenService {
                 .set('repo_id', maven_repo.repo_id as number)
                 .set('version', maven_repo.version as string)
                 .set('file_path', maven_repo.file_path as string)
-                // .set('is_release', 1)
+                .set('is_release', is_latest ? 1 : 0)
                 .set('created_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY);
-            is_latest && bql.set('is_release', 1);
             res = await bql.doInsertAsync(true);
 
             rtn_val = true;
