@@ -3,11 +3,9 @@ FROM node:gallium-alpine3.13
 RUN mkdir -p /usr/local/minrepo/src
 WORKDIR /usr/local/minrepo/src
 
-COPY . .
-
 RUN apk update \
-    && apk add -q sqlite \
-    && rm -rf node_modules \
+    && apk add -q sqlite git \
+    && git clone https://github.com/metalsm7/minrepo.git . \
     && npm install \
     && npm run build
 
@@ -22,7 +20,7 @@ RUN mv src/dist/* . \
     # && rm -rf data/repo/* \
     && mv src/package.json . \
     && rm -rf src/ \
-    && npm install --production \
+    && npm install --production
     # && mkdir data/db \
     # && mkdir data/repo \
     # && sqlite3 data/db/db.sqlite < resource/init.sql
