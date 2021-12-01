@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Req, Param, Res, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Put, Req, Param, Res, HttpStatus, StreamableFile, Response as NestResponse } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { MavenService, MavenRepo } from '../provider/maven.service';
 import { existsSync, copyFileSync, mkdirSync, unlinkSync, createReadStream, ReadStream } from 'fs';
@@ -78,7 +78,7 @@ export class MavenController {
     }
 
     @Get('*/:version/*.jar')
-    async getJar(@Req() req: Request, @Res() res: Response, @Param('access_key') access_key: string, @Param('version') version: string) {
+    async getJar(@Req() req: Request, @NestResponse({ passthrough: true }) res: Response, @Param('access_key') access_key: string, @Param('version') version: string): Promise<StreamableFile> {
         const req_repo: Array<string> = String(req.params[0]).split('/');
         const req_poms: Array<string> = req.params[1].split('-');
         const maven_info: MavenInfo = {
@@ -107,7 +107,8 @@ export class MavenController {
             'Content-Type': 'application/octet-stream',
             'Content-Disposition': `attachment; filename="${repo_detail.artifact_id as string}-${repo_detail.version as string}.jar"`,
         });
-        file.pipe(res);
+        // file.pipe(res);
+        return new StreamableFile(file);
     }
 
     @Put('*/:version/:format')

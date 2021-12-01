@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { appendFile, unlink, existsSync, mkdirSync } from 'fs';
+import { appendFileSync, unlink, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
 @Injectable()
@@ -37,7 +37,7 @@ export class PublishMiddleware implements NestMiddleware {
       value: null,
     };
 
-    req.on('data', async (chunk: any) => {
+    req.on('data', (chunk: any) => {
       // console.log(`chunk`);
       // console.log(chunk);
       if (pass_as_param) {
@@ -45,11 +45,7 @@ export class PublishMiddleware implements NestMiddleware {
         req['checksum'] = checksum;
       }
       else {
-        await new Promise((resolve: any, _reject: any) => {
-          appendFile(save_path, chunk, () => {
-            resolve();
-          });
-        });
+        appendFileSync(save_path, chunk);
       }
     });
     req.on('end', () => {
