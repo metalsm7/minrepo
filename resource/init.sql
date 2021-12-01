@@ -1,3 +1,9 @@
+drop table info;
+create table info (
+    version     text    not null
+);
+INSERT INTO info (version) VALUES ('0.1.0');
+
 drop table auth;
 create table auth (
     auth_idx    integer  not null constraint auth_pk primary key autoincrement,
@@ -37,13 +43,23 @@ create table maven_repo_detail (
 	                primary key autoincrement,
 	repo_id integer not null constraint maven_repo_detail_maven_repo_repo_id_fk references maven_repo,
 	version         text    not null,
+	module          text    null,
 	md5             text    null,
 	sha1            text    null,
 	sha256          text    null,
 	sha512          text    null,
 	file_path       text    null,
-	is_release      integer not null default 0,
+	is_release      integer not null default 1,
 	created_at      numeric not null
+);
+
+drop table maven_repo_detail_dependency;
+create table maven_repo_detail_dependency (
+	repo_detail_id  integer not null constraint maven_repo_detail_info_maven_repo_detail_repo_detail_id_fk references maven_repo_detail,
+	group_id         text    null,
+	artifact_id      text    null,
+	version         text    null,
+	scope           text    null
 );
 
 drop table maven_repo_access_history;

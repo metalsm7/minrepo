@@ -17,5 +17,20 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
+  },
+  "exclude": [
+    "node_modules",
+    "tmp",
+    "resource",
+    "data",
+    "views"
+  ],
+  "watchOptions": {
+    "excludeFiles": [
+      "tmp",
+      "resource",
+      "data",
+      "views"
+    ]
   }
 }

@@ -17,7 +17,7 @@ export class ApiRes {
         // 저장소
         0x100001: { status: 404, code: '0x100001', }, // 저장소 자료 없음
         0x100002: { status: 404, code: '0x100002', }, // 저장소 있음 & 파일 없음
-        0x100011: { status: 400, code: '0x100011', }, // 동일 버전이 존재함
+        0x100011: { status: 409, code: '0x100011', }, // 동일 버전이 존재함
     };
 
     static send(res: Response, code: number, custom_status?: number): void {

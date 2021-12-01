@@ -12,7 +12,22 @@ export interface MavenRepo {
     sha256?: string;
     sha512?: string;
     file_path?: string;
-}
+};
+
+export interface MavenRepoDetail {
+    repo_detail_id?: number;
+    version?: string;
+    module?: string;
+    file_path?: string;
+    is_release?: number;
+};
+
+export interface MavenRepoDetailDependency {
+    group_id: string;
+    artifact_id: string;
+    version: string;
+    scope: string;
+};
 
 @Injectable()
 export class MavenService {
@@ -74,11 +89,11 @@ export class MavenService {
 
             const bql: AZSql.Basic = new AZSql.Basic('maven_repo_detail', new AZSql(Database.getInstance().connection));
 
-            await bql
-                .setIsPrepared(true)
-                .set('is_release', 0)
-                .where('repo_id', repo_id as number)
-                .doUpdateAsync();
+            // await bql
+            //     .setIsPrepared(true)
+            //     .set('is_release', 0)
+            //     .where('repo_id', repo_id as number)
+            //     .doUpdateAsync();
 
             res = await bql
                 .setIsPrepared(true)
@@ -113,11 +128,11 @@ export class MavenService {
 
             bql = new AZSql.Basic('maven_repo_detail', new AZSql(Database.getInstance().connection));
 
-            is_latest && await bql
-                .setIsPrepared(true)
-                .set('is_release', 0)
-                .where('repo_id', maven_repo.repo_id as number)
-                .doUpdateAsync();
+            // is_latest && await bql
+            //     .setIsPrepared(true)
+            //     .set('is_release', 0)
+            //     .where('repo_id', maven_repo.repo_id as number)
+            //     .doUpdateAsync();
 
             res = await bql
                 .setIsPrepared(true)
@@ -211,6 +226,46 @@ WHERE
                 break;
         }
         return Object.keys(res).length < 1 ? null : res;
+    }
+
+    async updateRepoDetail(detail: MavenRepoDetail): Promise<boolean> {
+        let rtn_val: boolean = false;
+        let bql: AZSql.Basic = new AZSql.Basic('maven_repo_detail', new AZSql(Database.getInstance().connection))
+            .setIsPrepared(true)
+            .where('repo_detail_id', detail.repo_detail_id as number);
+        typeof detail.version !== 'undefined' && bql.set('version', detail.version);
+        typeof detail.module !== 'undefined' && bql.set('module', detail.module);
+        typeof detail.file_path !== 'undefined' && bql.set('file_path', detail.file_path);
+        typeof detail.is_release !== 'undefined' && bql.set('is_release', detail.is_release);
+        let res: AZSql.Result = await bql.doUpdateAsync();
+        rtn_val = res && res.affected as number > 0;
+        return rtn_val;
+    }
+
+    async getRepoDetailDependency(repo_detail_id: number): Promise<Array<any>> {
+        return await new AZSql(Database.getInstance().connection)
+            .getListAsync(`SELECT group_id, artifact_id, version, scope FROM maven_repo_detail_dependency WHERE repo_detail_id=@repo_detail_id`, { '@repo_detail_id': repo_detail_id });
+    }
+
+    async replaceRepoDetailDependency(repo_detail_id: number, list: Array<MavenRepoDetailDependency>): Promise<boolean> {
+        const bql: AZSql.Basic = new AZSql.Basic('maven_repo_detail_dependency', new AZSql(Database.getInstance().connection))
+            .setIsPrepared(true);
+        //
+        await bql.where('repo_detail_id', repo_detail_id).doDeleteAsync();
+        //
+        for (let cnti: number = 0; cnti < list.length; cnti++) {
+            const data: MavenRepoDetailDependency = list[cnti];
+            const res: AZSql.Result = await bql
+                .clear()
+                .setIsPrepared(true)
+                .set('repo_detail_id', repo_detail_id)
+                .set('group_id', data.group_id)
+                .set('artifact_id', data.artifact_id)
+                .set('version', data.version)
+                .set('scope', data.scope)
+                .doInsertAsync();
+        }
+        return true;
     }
 
     async addAccessHistory(repo_id: number, repo_detail_id: number, access_key: string, remote_addr: string): Promise<boolean> {
