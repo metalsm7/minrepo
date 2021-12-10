@@ -76,16 +76,19 @@ export class MavenService {
 
     async addRepo(maven_repo: MavenRepo): Promise<boolean> {
         let rtn_val: boolean = false;
-        let res: AZSql.Result = await new AZSql.Basic('maven_repo', new AZSql(Database.getInstance().connection))
-            .setIsPrepared(true)
+        const repo_id: number = await new AZSql.Basic('maven_repo', new AZSql(Database.getInstance().connection))
+            .setPrepared(true)
             .set('group_id', maven_repo.group_id as string)
             .set('artifact_id', maven_repo.artifact_id as string)
             .set('release_version', maven_repo.version as string)
             .set('latest_version', maven_repo.version as string)
             .set('created_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY)
-            .doInsertAsync(true);
-        if (typeof res.err === 'undefined' && typeof res.identity !== 'undefined' && (res.identity as number) > 0) {
-            const repo_id: number = res.identity as number;
+            .doInsertAsync(true)
+            .catch((_err) => {
+                return -1;
+            });
+        if (repo_id > 0) {
+            // const repo_id: number = res.identity as number;
 
             const bql: AZSql.Basic = new AZSql.Basic('maven_repo_detail', new AZSql(Database.getInstance().connection));
 
@@ -95,14 +98,14 @@ export class MavenService {
             //     .where('repo_id', repo_id as number)
             //     .doUpdateAsync();
 
-            res = await bql
-                .setIsPrepared(true)
+            await bql
+                .setPrepared(true)
                 .set('repo_id', repo_id as number)
                 .set('version', maven_repo.version as string)
                 .set('file_path', maven_repo.file_path as string)
                 .set('is_release', 1)
                 .set('created_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY)
-                .doInsertAsync(true);
+                .doInsertAsync();
 
             rtn_val = true;
         }
@@ -112,7 +115,7 @@ export class MavenService {
     async updateRepo(maven_repo: MavenRepo, is_latest: boolean): Promise<boolean> {
         let rtn_val: boolean = false;
         let bql: AZSql.Basic = new AZSql.Basic('maven_repo', new AZSql(Database.getInstance().connection))
-            .setIsPrepared(true);
+            .setPrepared(true);
         is_latest && bql
             .set('release_version', maven_repo.version as string)
             .set('latest_version', maven_repo.version as string);
@@ -120,11 +123,14 @@ export class MavenService {
         //     .setIsPrepared(true);
         //     .set('release_version', maven_repo.version as string)
         //     .set('latest_version', maven_repo.version as string)
-        let res: AZSql.Result = await bql
+        const affected: number = await bql
             .set('updated_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY)
             .where('repo_id', maven_repo.repo_id as number)
-            .doUpdateAsync();
-        if (typeof res.err === 'undefined' && typeof res.affected !== 'undefined' && (res.affected as number) > 0) {
+            .doUpdateAsync()
+            .catch((_err) => {
+                return -1;
+            });
+        if (affected > 0) {
 
             bql = new AZSql.Basic('maven_repo_detail', new AZSql(Database.getInstance().connection));
 
@@ -134,14 +140,14 @@ export class MavenService {
             //     .where('repo_id', maven_repo.repo_id as number)
             //     .doUpdateAsync();
 
-            res = await bql
-                .setIsPrepared(true)
+            await bql
+                .setPrepared(true)
                 .set('repo_id', maven_repo.repo_id as number)
                 .set('version', maven_repo.version as string)
                 .set('file_path', maven_repo.file_path as string)
                 .set('is_release', is_latest ? 1 : 0)
                 .set('created_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY)
-                .doInsertAsync(true);
+                .doInsertAsync();
 
             rtn_val = true;
         }
@@ -150,7 +156,7 @@ export class MavenService {
 
     async getRepo(group_id_or_repo_id: string|number, artifact_id?: string): Promise<object|null> {
         const bql: AZSql.Basic = new AZSql.Basic('maven_repo', new AZSql(Database.getInstance().connection))
-            .setIsPrepared(true);
+            .setPrepared(true);
         if (typeof group_id_or_repo_id === 'string') {
             bql
                 .where('group_id', group_id_or_repo_id as string)
@@ -225,39 +231,39 @@ WHERE
                     )
                 break;
         }
-        return Object.keys(res).length < 1 ? null : res;
+        return !res || Object.keys(res).length < 1 ? null : res;
     }
 
     async updateRepoDetail(detail: MavenRepoDetail): Promise<boolean> {
         let rtn_val: boolean = false;
         let bql: AZSql.Basic = new AZSql.Basic('maven_repo_detail', new AZSql(Database.getInstance().connection))
-            .setIsPrepared(true)
+            .setPrepared(true)
             .where('repo_detail_id', detail.repo_detail_id as number);
         typeof detail.version !== 'undefined' && bql.set('version', detail.version);
         typeof detail.module !== 'undefined' && bql.set('module', detail.module);
         typeof detail.file_path !== 'undefined' && bql.set('file_path', detail.file_path);
         typeof detail.is_release !== 'undefined' && bql.set('is_release', detail.is_release);
-        let res: AZSql.Result = await bql.doUpdateAsync();
-        rtn_val = res && res.affected as number > 0;
-        return rtn_val;
+        const affected: number = await bql.doUpdateAsync().catch((_err) => { return -1; });
+        return affected > 0;
     }
 
     async getRepoDetailDependency(repo_detail_id: number): Promise<Array<any>> {
         return await new AZSql(Database.getInstance().connection)
+            .setPrepared(true)
             .getListAsync(`SELECT group_id, artifact_id, version, scope FROM maven_repo_detail_dependency WHERE repo_detail_id=@repo_detail_id`, { '@repo_detail_id': repo_detail_id });
     }
 
     async replaceRepoDetailDependency(repo_detail_id: number, list: Array<MavenRepoDetailDependency>): Promise<boolean> {
         const bql: AZSql.Basic = new AZSql.Basic('maven_repo_detail_dependency', new AZSql(Database.getInstance().connection))
-            .setIsPrepared(true);
+            .setPrepared(true);
         //
         await bql.where('repo_detail_id', repo_detail_id).doDeleteAsync();
         //
         for (let cnti: number = 0; cnti < list.length; cnti++) {
             const data: MavenRepoDetailDependency = list[cnti];
-            const res: AZSql.Result = await bql
+            await bql
                 .clear()
-                .setIsPrepared(true)
+                .setPrepared(true)
                 .set('repo_detail_id', repo_detail_id)
                 .set('group_id', data.group_id)
                 .set('artifact_id', data.artifact_id)
@@ -271,16 +277,17 @@ WHERE
     async addAccessHistory(repo_id: number, repo_detail_id: number, access_key: string, remote_addr: string): Promise<boolean> {
         let rtn_val: boolean = false;
         let bql: AZSql.Basic = new AZSql.Basic('maven_repo_access_history_log', new AZSql(Database.getInstance().connection))
-            .setIsPrepared(true);
-        let res: AZSql.Result = await bql
+            .setPrepared(true);
+        let affected: number = await bql
             .set('repo_id', repo_id)
             .set('repo_detail_id', repo_detail_id)
             .set('access_key', access_key)
             .set('remote_addr', remote_addr)
-            .doInsertAsync(true);
-        if (res && res.affected as number > 0) {
-            res = await new AZSql.Prepared(Database.getInstance().connection)
-                .setIdentity(true)
+            .doInsertAsync(true)
+            .catch((_err) => { return -1; });
+        if (affected > 0) {
+            affected = await new AZSql.Prepared(Database.getInstance().connection)
+                // .setIdentity(true)
                 .executeAsync(
                     `INSERT INTO maven_repo_access_history
  (repo_id, access_count, updated_at)
@@ -292,9 +299,10 @@ SET
  access_count=access_count+1,
  updated_at=strftime('%s','now')`,
                     { '@repo_id': repo_id }
-                );
+                )
+                .catch((_err) => { return -1; });
 
-            rtn_val = res && res.affected as number > 0;
+            rtn_val = affected > 0;
         }
         return rtn_val;
     }

@@ -89,7 +89,11 @@ export class MavenController {
     @Get('*/:version/*.jar')
     async getJar(@Req() req: Request, @NestResponse({ passthrough: true }) res: Response, @Param('access_key') access_key: string, @Param('version') version: string): Promise<StreamableFile> {
         const req_repo: Array<string> = String(req.params[0]).split('/');
-        const req_poms: Array<string> = req.params[1].split('-');
+        const req_repo_version: string = req.params[1].replace(/(.+)-(\d+\.\d+\.\d+(-.+)?)$/, '$2');
+        if (req_repo_version !== version) {
+            ApiRes.send(res, 0x100001);
+            return;
+        }
         const maven_info: MavenInfo = {
             group_id: null,
             artifact_id: null,
@@ -97,7 +101,7 @@ export class MavenController {
         if (req_repo.length > 1) {
             maven_info.artifact_id = req_repo.splice(req_repo.length - 1)[0];
             maven_info.group_id = req_repo.join('.');
-            maven_info.version = req_poms[1];
+            maven_info.version = req_repo_version;
         }
         const repo_detail: any = await this.mavenService.getRepoDetail(maven_info.group_id, maven_info.artifact_id, maven_info.version);
         if (repo_detail === null) {
