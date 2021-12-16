@@ -144,7 +144,7 @@ export class MavenController {
             maven_repo.group_id = req_repo.join('.');
             maven_repo.version = version;
         }
-        const is_exists: boolean = await this.mavenService.exists(maven_repo.group_id, maven_repo.artifact_id, maven_repo.version);
+        const is_exists: boolean = await this.mavenService.has(maven_repo.group_id, maven_repo.artifact_id, maven_repo.version);
         if (is_exists && format_type === 'jar') {
             ApiRes.send(res, 0x100011);
             return;

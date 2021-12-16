@@ -266,33 +266,27 @@ export class ManageController {
         ApiRes.send(res, 0x000000);
     }
 
-    @Get('mavens')
-    getMavens() {
+    // @Get('mavens')
+    // getMavens() {
+    // }
 
-    }
+    // @Get('mavens/:repo_id')
+    // getMaven() {
+    // }
 
-    @Get('mavens/:repo_id')
-    getMaven() {
+    // @Delete('mavens/:repo_id')
+    // removeMaven() {
+    // }
 
-    }
+    // @Get('archives')
+    // getArchives() {
+    // }
 
-    @Delete('mavens/:repo_id')
-    removeMaven() {
+    // @Get('archives/:repo_id')
+    // getArchive() {
+    // }
 
-    }
-
-    @Get('archives')
-    getArchives() {
-
-    }
-
-    @Get('archives/:repo_id')
-    getArchive() {
-
-    }
-
-    @Delete('archives/:repo_id')
-    removeArchive() {
-
-    }
+    // @Delete('archives/:repo_id')
+    // removeArchive() {
+    // }
 }

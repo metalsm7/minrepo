@@ -39,7 +39,7 @@ export class MavenService {
      * @param version 
      * @returns 
      */
-    async exists(group_id: string, artifact_id: string, version?: string): Promise<boolean> {
+    async has(group_id: string, artifact_id: string, version?: string): Promise<boolean> {
         const sql: AZSql.Prepared = new AZSql.Prepared(Database.getInstance().connection);
         let res: number = 0;
         if (typeof version === 'undefined') {
