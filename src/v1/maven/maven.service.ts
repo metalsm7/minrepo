@@ -219,7 +219,7 @@ LIMIT 1`,
                 res = await new AZSql.Prepared(Database.getInstance().connection)
                     .getDataAsync(
 `SELECT
- mr.repo_id, mr.group_id, mr.artifact_id, mr.release_version, mrd.version
+ mr.repo_id, mr.group_id, mr.artifact_id, mr.release_version, mrd.version, mrd.repo_detail_id, mrd.file_path
 FROM
  maven_repo as mr
  LEFT JOIN maven_repo_detail as mrd

@@ -6,6 +6,7 @@ import { DocController } from './v1/doc/doc.controller';
 import { AccessCheckMiddleware } from './v1/_middleware/access-check.middleware';
 import { ManageCheckMiddleware } from './v1/_middleware/manage-check.middleware';
 import { PublishMiddleware } from './v1/_middleware/publish.middleware';
+import { ArchiveMiddleware } from './v1/_middleware/archive.middleware';
 import { RequestExtendMiddleware } from './v1/_middleware/request-extend.middleware';
 import { MavenService } from './v1/maven/maven.service';
 import { CallbackController } from './test/callback/callback.controller';
@@ -29,7 +30,9 @@ export class AppModule implements NestModule {
       .apply(AccessCheckMiddleware)
       .forRoutes(MavenController, ArchiveController)
       .apply(PublishMiddleware)
-      .forRoutes(MavenController);
+      .forRoutes(MavenController)
+      .apply(ArchiveMiddleware)
+      .forRoutes(ArchiveController);
   }
   
 }
