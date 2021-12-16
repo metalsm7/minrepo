@@ -2,7 +2,7 @@ import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { appendFileSync, unlink, existsSync, mkdirSync, readFileSync, unlinkSync } from 'fs';
 import { join } from 'path';
-import { RequestExtend } from '../middleware/request-extend.middleware';
+import { RequestExtend } from './request-extend.middleware';
 import { XMLParser } from 'fast-xml-parser';
 
 @Injectable()

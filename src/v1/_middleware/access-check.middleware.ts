@@ -1,7 +1,7 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { AuthProvider } from '../provider/auth.provider';
-import { RequestExtend } from '../middleware/request-extend.middleware';
+import { AuthProvider } from '../_provider/auth.provider';
+import { RequestExtend } from './request-extend.middleware';
 import { ApiRes } from '../../common/apires';
 
 @Injectable()

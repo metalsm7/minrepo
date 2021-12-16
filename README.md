@@ -21,7 +21,7 @@ $ curl -X GET http://localhost:3000/version
 ```
 
 ### 초기 사용자 등록
-> local 및 사설망 주소(clacc B/C) 허용
+> local 및 사설망 주소(class B/C) 허용
 
 ```sh
 $ docker exec -it minrepo sh # docker 연결

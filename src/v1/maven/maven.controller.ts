@@ -1,9 +1,9 @@
 import { Controller, Get, Put, Req, Param, Res, HttpStatus, StreamableFile, Response as NestResponse } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { MavenService, MavenRepo, MavenRepoDetail, MavenRepoDetailDependency } from '../provider/maven.service';
+import { MavenService, MavenRepo, MavenRepoDetail, MavenRepoDetailDependency } from './maven.service';
 import { existsSync, copyFileSync, mkdirSync, unlinkSync, createReadStream, ReadStream } from 'fs';
 import { join } from 'path';
-import { RequestExtend } from '../middleware/request-extend.middleware';
+import { RequestExtend } from '../_middleware/request-extend.middleware';
 import { ApiRes } from '../../common/apires';
 
 interface MavenInfo {
