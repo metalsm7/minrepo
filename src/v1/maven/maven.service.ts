@@ -12,6 +12,7 @@ export interface MavenRepo {
     sha256?: string;
     sha512?: string;
     file_path?: string;
+    file_size?: number;
 };
 
 export interface MavenRepoDetail {
@@ -103,6 +104,7 @@ export class MavenService {
                 .set('repo_id', repo_id as number)
                 .set('version', maven_repo.version as string)
                 .set('file_path', maven_repo.file_path as string)
+                .set('file_size', maven_repo.file_size as number)
                 .set('is_release', 1)
                 .set('created_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY)
                 .doInsertAsync();
@@ -145,6 +147,7 @@ export class MavenService {
                 .set('repo_id', maven_repo.repo_id as number)
                 .set('version', maven_repo.version as string)
                 .set('file_path', maven_repo.file_path as string)
+                .set('file_size', maven_repo.file_size as number)
                 .set('is_release', is_latest ? 1 : 0)
                 .set('created_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY)
                 .doInsertAsync();

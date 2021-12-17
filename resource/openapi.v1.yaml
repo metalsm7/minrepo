@@ -1,9 +1,9 @@
 openapi: 3.0.0
 info:
-  version: 0.0.1
-  title: "@Maven RESTfulAPI"
+  version: 0.1.0
+  title: "MinRepo API"
   description: |
-    Tiny maven repository server
+    Mini Maven repository and archiving server
   termsOfService: empty
   contact:
     name: yh.lee
@@ -11,14 +11,63 @@ info:
     url: https://mparang.com
   x-logo:
     # url: ''
-    altText: "@Maven"
+    altText: "MinRepo"
 servers:
   - url: http://localhost/v1
 tags:
+  - name: Manage
+    description: |
+      Manage
   - name: Maven
     description: |
-      Maven 저장소
+      Maven Repo
+  - name: Archive
+    description: |
+      Archieving
 paths:
+  /manage/auths:
+    get:
+      tags:
+        - Manage
+      operationId: GetAuths
+      summary: Get Auth List
+      description: |
+        Get All Auth List
+      parameters:
+        - name: credential
+          description: access_key
+          in: header
+          schema:
+            type: string
+    post:
+      tags:
+        - Manage
+      operationId: AddAuth
+      summary: Add Auth
+      description: |
+        Add Auth
+      parameters:
+        - name: credential
+          description: access_key
+          in: header
+          schema:
+            type: string
+  /manage/auths/{access_key}:
+    get:
+      tagls:
+        - Manage
+  /{access_key}/archieve/{group_id_url_form}/{artifact_id}/{version}:
+    post:
+      tags:
+        - Archive
+      operationId: GetArchive
+      summary: Get Archive File
+      description: |
+        Download archive file
+      parameters:
+        - name: access_key
+          in: path
+
   /{access_key}/maven/{group_id}/{artifact_id}/maven-metadata.xml:
     get:
       tags:

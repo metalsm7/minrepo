@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AZSql } from 'azlib';
 import { Database } from '../../common/database';
+import { ArchiveRepo, ArchiveRepoDetail, ArchiveInfo } from '../_interface/archive.interface';
 
 @Injectable()
 export class ArchiveService {
@@ -34,6 +35,69 @@ export class ArchiveService {
         return res > 0;
     }
 
+    async addRepo(repo: ArchiveInfo): Promise<boolean> {
+        let rtn_val: boolean = false;
+        const repo_id: number = await new AZSql.Basic('archive_repo', new AZSql(Database.getInstance().connection))
+            .setPrepared(true)
+            .set('group_id', repo.group_id as string)
+            .set('artifact_id', repo.artifact_id as string)
+            .set('latest_version', repo.version as string)
+            .set('created_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY)
+            .doInsertAsync(true)
+            .catch((_err) => {
+                return -1;
+            });
+        if (repo_id > 0) {
+            const bql: AZSql.Basic = new AZSql.Basic('archive_repo_detail', new AZSql(Database.getInstance().connection));
+
+            await bql
+                .setPrepared(true)
+                .set('repo_id', repo_id as number)
+                .set('version', repo.version as string)
+                .set('file_path', repo.file_path as string)
+                .set('file_ext', repo.file_ext as string)
+                .set('file_size', repo.file_size as number)
+                .set('is_release', 1)
+                .set('created_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY)
+                .doInsertAsync();
+
+            rtn_val = true;
+        }
+        return rtn_val;
+    }
+
+    async updateRepo(repo: ArchiveInfo, is_latest: boolean): Promise<boolean> {
+        let rtn_val: boolean = false;
+        let bql: AZSql.Basic = new AZSql.Basic('archive_repo', new AZSql(Database.getInstance().connection))
+            .setPrepared(true);
+        is_latest && bql
+            .set('latest_version', repo.version as string);
+        const affected: number = await bql
+            .set('updated_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY)
+            .where('repo_id', repo.repo_id as number)
+            .doUpdateAsync()
+            .catch((_err) => {
+                return -1;
+            });
+        if (affected > 0) {
+            bql = new AZSql.Basic('archive_repo_detail', new AZSql(Database.getInstance().connection));
+
+            await bql
+                .setPrepared(true)
+                .set('repo_id', repo.repo_id as number)
+                .set('version', repo.version as string)
+                .set('file_path', repo.file_path as string)
+                .set('file_ext', repo.file_ext as string)
+                .set('file_size', repo.file_size as number)
+                .set('is_release', is_latest ? 1 : 0)
+                .set('created_at', `strftime('%s','now')`, AZSql.BQuery.VALUETYPE.QUERY)
+                .doInsertAsync();
+
+            rtn_val = true;
+        }
+        return rtn_val;
+    }
+
     async getRepo(group_id_or_repo_id: string|number, artifact_id?: string): Promise<object|null> {
         const bql: AZSql.Basic = new AZSql.Basic('archive_repo', new AZSql(Database.getInstance().connection))
             .setPrepared(true);
@@ -48,6 +112,19 @@ export class ArchiveService {
         const res: Array<any> = await bql.doSelectAsync();
         //
         return res.length > 0 ? res[0] : null;
+    }
+
+    async getRepoVersions(repo_id: number): Promise<Array<string>> {
+        const res: Array<any> = await new AZSql.Prepared(Database.getInstance().connection)
+            .getListAsync(
+                `SELECT version FROM archive_repo_detail WHERE repo_id=@repo_id`,
+                { '@repo_id': repo_id }
+            );
+        const rtn_val: Array<string> = new Array<string>();
+        for (let cnti: number = 0; cnti < res.length; cnti++) {
+            rtn_val.push(res[cnti]['version']);
+        }
+        return rtn_val;
     }
 
     async getRepoDetail(group_id_or_repo_id: string|number, artifact_id?: string, version?: string): Promise<object|null> {
@@ -65,7 +142,7 @@ export class ArchiveService {
                 res = await new AZSql.Prepared(Database.getInstance().connection)
                     .getDataAsync(
 `SELECT
- mr.repo_id, mr.group_id, mr.artifact_id, mr.latest_version, mrd.version, mrd.repo_detail_id, mrd.file_path, mrd.file_ext
+ mr.repo_id, mr.group_id, mr.artifact_id, mr.latest_version, mrd.version, mrd.repo_detail_id, mrd.file_path, mrd.file_ext, mrd.file_size
 FROM
  archive_repo as mr
  LEFT JOIN archive_repo_detail as mrd

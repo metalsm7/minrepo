@@ -1,7 +1,11 @@
 export interface ArchiveInfo {
+    repo_id?: number;
     group_id: string;
     artifact_id: string;
     version: string;
+    file_path?: string;
+    file_ext?: string;
+    file_size?: number;
 }
 
 export interface ArchiveRepo {

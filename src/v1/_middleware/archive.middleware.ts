@@ -2,31 +2,38 @@ import { Injectable, NestMiddleware } from '@nestjs/common';
 import { appendFileSync, unlink, existsSync, mkdirSync, readFileSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { RequestExtend } from './request-extend.middleware';
+import { RegExps } from '../../common/define';
+import { ArchiveInfo } from '../_interface/archive.interface';
 
 @Injectable()
 export class ArchiveMiddleware implements NestMiddleware {
   async use(req: any, res: any, next: () => void) {
-    const path_regex: RegExp = new RegExp(/^\/v\d+\/[a-zA-Z0-9]+\/archive\/.+?$/);
+    //
+    const archiveInfo: ArchiveInfo = {
+      group_id: req.path.replace(RegExps.ReqArchive, '$1').replace(/\//g, '.'),
+      artifact_id: req.path.replace(RegExps.ReqArchive, '$2'),
+      version: req.path.replace(RegExps.ReqArchive, '$3'),
+      file_ext: req.path.replace(RegExps.ReqArchive, '$4') !== '' ? req.path.replace(RegExps.ReqArchive, '$4').replace(/\//g, '.') : undefined,
+    };
     if (
-      req.method.toUpperCase() !== 'PUT' ||
-      !path_regex.test(req.path) ||
+      !['PUT', 'POST'].includes(req.method.toUpperCase()) ||
+      !RegExps.ReqArchive.test(req.path) ||
       typeof req.headers['content-type'] === 'undefined' || req.headers['content-type'].toLowerCase() !== 'application/octet-stream'
     ) {
       next();
       return;
     }
-    const file_name: string = req.path.split('/').pop();
-    const save_path: string = join(process.cwd(), 'tmp', `${((req as any).ext as RequestExtend).remote_addr.replace(/[\:\.]/g, '_')}-${file_name}`);
+    //
+    if (archiveInfo.group_id === '' || archiveInfo.artifact_id === '' || !RegExps.Version.test(archiveInfo.version)) {
+      next();
+      return;
+    }
+    
+    const file_name: string = `${archiveInfo.group_id}-${archiveInfo.artifact_id}-${archiveInfo.version}`;
+    const save_path: string = join(process.cwd(), 'tmp', `${(Math.random().toString(36)+'00000000000000000').slice(2, 10 + 2)}-${file_name}`);
 
     !existsSync(join(process.cwd(), 'tmp')) && mkdirSync(join(process.cwd(), 'tmp'), { recursive: true });
-    
-    if (existsSync(save_path)) {
-      await new Promise((resolve: any, _reject: any) => {
-        unlink(save_path, () => {
-          resolve();
-        })
-      });
-    }
+    existsSync(save_path) && unlinkSync(save_path);
     
     (req as any).tmp_path = save_path;
 

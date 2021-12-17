@@ -1,7 +1,7 @@
 import { Controller, Get, Put, Req, Param, Res, HttpStatus, StreamableFile, Response as NestResponse } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { MavenService, MavenRepo, MavenRepoDetail, MavenRepoDetailDependency } from './maven.service';
-import { existsSync, copyFileSync, mkdirSync, unlinkSync, createReadStream, ReadStream } from 'fs';
+import { existsSync, copyFileSync, mkdirSync, unlinkSync, createReadStream, ReadStream, statSync } from 'fs';
 import { join } from 'path';
 import { RequestExtend } from '../_middleware/request-extend.middleware';
 import { ApiRes } from '../../common/apires';
@@ -146,6 +146,7 @@ export class MavenController {
         }
         const is_exists: boolean = await this.mavenService.has(maven_repo.group_id, maven_repo.artifact_id, maven_repo.version);
         if (is_exists && format_type === 'jar') {
+            existsSync((req as any).tmp_path) && unlinkSync((req as any).tmp_path);  
             ApiRes.send(res, 0x100011);
             return;
         }
@@ -156,11 +157,12 @@ export class MavenController {
         const repo: any = await this.mavenService.getRepo(maven_repo.group_id, maven_repo.artifact_id);
 
         const now: Date = new Date();
-        const save_path: string = join(process.cwd(), 'data', 'repo', String(now.getUTCFullYear()), String(now.getUTCMonth()), String(now.getUTCDate()));
+        const save_path: string = join(process.cwd(), 'data', 'repo', 'maven', String(now.getUTCFullYear()), String(now.getUTCMonth()), String(now.getUTCDate()));
         const temp_path: string = (req as any).tmp_path;
         const save_name: string = (Math.random().toString(36)+'00000000000000000').slice(2, 10 + 2);
 
         maven_repo.file_path = join(save_path, save_name).replace(process.cwd(), '');
+        maven_repo.file_size = statSync(temp_path).size;
 
         let rtn_val: boolean = false;
         //

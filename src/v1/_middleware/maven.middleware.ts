@@ -6,7 +6,7 @@ import { RequestExtend } from './request-extend.middleware';
 import { XMLParser } from 'fast-xml-parser';
 
 @Injectable()
-export class PublishMiddleware implements NestMiddleware {
+export class MavenMiddleware implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
     const path_regex: RegExp = new RegExp(/^\/v\d+\/[a-zA-Z0-9]+\/maven\/.+\.(jar|pom|module)(\.sha1|\.md5|\.sha256|\.sha512)?$/);
     if (
@@ -18,7 +18,8 @@ export class PublishMiddleware implements NestMiddleware {
       return;
     }
     const file_name: string = req.path.split('/').pop();
-    const save_path: string = join(process.cwd(), 'tmp', `${((req as any).ext as RequestExtend).remote_addr.replace(/[\:\.]/g, '_')}-${file_name}`);
+    // const save_path: string = join(process.cwd(), 'tmp', `${((req as any).ext as RequestExtend).remote_addr.replace(/[\:\.]/g, '_')}-${file_name}`);
+    const save_path: string = join(process.cwd(), 'tmp', `${(Math.random().toString(36)+'00000000000000000').slice(2, 10 + 2)}-${file_name}`);
     const file_regex_checksum: RegExp = new RegExp(/.+\.(jar|pom|module|xml)\.(md5|sha1|sha256|sha512)$/);
     const is_checksum: boolean = file_regex_checksum.test(file_name);
     // const is_jar: boolean = new RegExp(/.+\.(jar)$/).test(file_name);
