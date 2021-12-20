@@ -14,7 +14,6 @@ export class ManageController {
 
     @Post('auths')
     async addAuths(@Res() res: Response, @Body() req_model: Auth) {
-        console.log(`getAuths - req_model:${JSON.stringify(req_model)}`);
         // validation
         if (typeof req_model.access_key !== 'string' || (req_model.access_key as string).trim().length < 1) {
             ApiRes.send(res, 0x000001);

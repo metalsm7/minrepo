@@ -21,7 +21,6 @@ export class ArchiveController {
           version: req.path.replace(RegExps.ReqArchive, '$3'),
           file_ext: req.path.replace(RegExps.ReqArchive, '$4') !== '' ? req.path.replace(RegExps.ReqArchive, '$4').replace(/\//g, '.') : undefined,
         };
-        console.log(`archiveInfo:${JSON.stringify(archiveInfo)}`);
         //
         const is_exists: boolean = await this.archiveService.has(archiveInfo.group_id, archiveInfo.artifact_id, archiveInfo.version);
         if (is_exists) {
@@ -93,7 +92,6 @@ export class ArchiveController {
             version,
         };
         //
-        console.log(`archiveInfo:${JSON.stringify(archiveInfo)}`);
         const repo_detail: any = await this.archiveService.getRepoDetail(archiveInfo.group_id, archiveInfo.artifact_id, archiveInfo.version);
         if (repo_detail === null) {
             ApiRes.send(res, 0x100001);
