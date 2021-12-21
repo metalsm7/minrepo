@@ -122,3 +122,5 @@ create table archive_repo_access_history_log (
 
 insert into auth (access_key, target_repos, is_admin, created_at) values ('local_admin',1,1,0);
 insert into auth_remote_expires (auth_idx, remote_addr, is_regexp) values (1,'^::1$',1);
+insert into auth_remote_expires (auth_idx, remote_addr, is_regexp) values (1,'^(::ffff:)?127\.0\.0\.1$',1);
+insert into auth_remote_expires (auth_idx, remote_addr, is_regexp) values (1,'^(::ffff:)?172\.(1[6-9]|2[0-9]|3[0-1])\.\d{1,3}\.\d{1,3}$',1);
