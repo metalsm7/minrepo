@@ -162,7 +162,7 @@ export class MavenController {
         const save_name: string = (Math.random().toString(36)+'00000000000000000').slice(2, 10 + 2);
 
         maven_repo.file_path = join(save_path, save_name).replace(process.cwd(), '');
-        maven_repo.file_size = statSync(temp_path).size;
+        format_type === 'jar' && (maven_repo.file_size = statSync(temp_path).size);
 
         let rtn_val: boolean = false;
         //
