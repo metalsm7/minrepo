@@ -98,6 +98,14 @@ export class ArchiveService {
         return rtn_val;
     }
 
+    async replaceRepo(repo: ArchiveInfo, repo_detail_id: number, is_latest: boolean): Promise<boolean> {
+        const detail_removed = await this.removeRepoDetail(repo.repo_id!, repo_detail_id);
+        if (detail_removed) {
+            return this.updateRepo(repo, is_latest);
+        }
+        return false;
+    }
+
     async getRepo(group_id_or_repo_id: string|number, artifact_id?: string): Promise<object|null> {
         const bql: AZSql.Basic = new AZSql.Basic('archive_repo', new AZSql(Database.getInstance().connection))
             .setPrepared(true);
@@ -125,6 +133,17 @@ export class ArchiveService {
             rtn_val.push(res[cnti]['version']);
         }
         return rtn_val;
+    }
+
+    async removeRepoDetail(repo_id: number, repo_detail_id: number): Promise<boolean> {
+        let bql: AZSql.Basic = new AZSql.Basic('archive_repo_detail', new AZSql(Database.getInstance().connection))
+            .setPrepared(true);
+        let affected: number = await bql
+            .where('repo_id', repo_id)
+            .where('repo_detail_id', repo_detail_id)
+            .doDeleteAsync()
+            .catch((_err) => { return -1; });
+        return affected > 0;
     }
 
     async getRepoDetail(group_id_or_repo_id: string|number, artifact_id?: string, version?: string): Promise<object|null> {

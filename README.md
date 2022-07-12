@@ -12,7 +12,7 @@ $ node dist/main.js # 실행시
 ### Docker
 
 ```bash
-$ docker run -d -p 3000:3000 -v ${PWD}/minrepo:/usr/local/minrepo/data --name minrepo --restart unless-stopped mparang/minrepo:0.1.0
+$ docker run -d -p 3000:3000 -v ${PWD}/minrepo:/usr/local/minrepo/data --name minrepo --restart unless-stopped mparang/minrepo:0.1.2
 ```
 
 ### 버전확인
@@ -37,3 +37,23 @@ $ exit # docker 연결 종료
 ### Maven url
 - http://localhost:3000/v1/userkeysample1/maven
 - ssl 미사용시 allowInsecureProtocol: true 설정 추가 필요
+
+### Archive url
+
+- 업로드
+
+    ```bash
+    $ curl -XPOST localhost:3000/v1/userkeysample1/archive/group_id/artifact_id/version -H "Content-Type: application/octet-stream" --data-binary @file
+    ```
+
+- 파일변경
+
+    ```bash
+    $ curl -XPUT localhost:3000/v1/userkeysample1/archive/group_id/artifact_id/version -H "Content-Type: application/octet-stream" --data-binary @file
+    ```
+
+- 다운로드
+
+    ```bash
+    $ curl -XGET -L localhost:3000/v1/userkeysample1/archive/group_id/artifact_id/version -o filename
+    ```
