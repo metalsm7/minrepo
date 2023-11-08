@@ -59,7 +59,7 @@ export class MavenMiddleware implements NestMiddleware {
     req.on('end', () => {
       if (is_pom) {
         const pom: any = new XMLParser().parse(readFileSync(save_path));
-        (req as any).publish = { dependencies: pom.project.dependencies.dependency, };
+        (req as any).publish = { dependencies: pom.project.dependencies?.dependency, };
         // groupId, artifactId, version, scope
         unlinkSync(save_path);
       }
